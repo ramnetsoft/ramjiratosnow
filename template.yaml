@@ -1,0 +1,530 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sw_api
+Parameters:
+  S3SnowBucketName:
+    Type: String
+    Default: snow-attachments-v3
+  S3PresignUrlTtl:
+    Type: Number
+    Default: 600
+  S3JSDBucketName:
+    Type: String
+    Default: jsd-attachments-v3
+  JiraServer:
+    Type: String
+    Default: https://jisync.atlassian.net
+  JiraUser:
+    Type: String
+    Default: atykhonov+jisync-system-user@gmail.com
+  JiraPassword:
+    Type: String
+  SnowApiEndpoint:
+    Type: String
+    Default: https://dev.api.metlife.com/metlife/development
+  SnowClientId:
+    Type: String
+  SnowBasicAuth:
+    Type: String
+  SnowAuthUserName:
+    Type: String
+  SnowAuthPassword:
+    Type: String
+  SnowAuthURL:
+    Type: String
+  Stage:
+    Type: String
+    Default: dev
+  JiraCustomerRefNoFieldId:
+    Type: String
+  JiraActualResultFieldId:
+    Type: String
+  JiraExpectedResultFieldId:
+      Type: String
+  JiraEnvironmentFieldId:
+        Type: String      
+  JiraServiceDeskId:
+    Type: String
+  JiraRequestTypeId:
+    Type: String
+  
+Globals:
+  Function:
+    Timeout: 60
+    Runtime: python3.6
+Resources:
+# SSM resources
+  JiraCustomerRefNoFieldIdValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraCustomerRefNoFieldId
+      Type: String
+      Value: !Ref JiraCustomerRefNoFieldId
+  JiraActualResultFieldIdValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraActualResultFieldId
+      Type: String
+      Value: !Ref JiraActualResultFieldId
+  JiraExpectedResultFieldIdValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraExpectedResultFieldId
+      Type: String
+      Value: !Ref JiraExpectedResultFieldId
+  JiraEnvironmentFieldIdValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraEnvironmentFieldId
+      Type: String
+      Value: !Ref JiraEnvironmentFieldId
+  JiraServiceDeskIdValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraServiceDeskId
+      Type: String
+      Value: !Ref JiraServiceDeskId
+  JiraRequestTypeIdValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraRequestTypeId
+      Type: String
+      Value: !Ref JiraRequestTypeId
+  S3PresignUrlTtlValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: S3PresignUrlTtl
+      Type: String
+      Value: !Ref S3PresignUrlTtl
+  JiraServerValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraServer
+      Type: String
+      Value: !Ref JiraServer
+  JiraUserValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraUser
+      Type: String
+      Value: !Ref JiraUser
+  JiraPasswordValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraPassword
+      Type: String
+      Value: !Ref JiraPassword
+  SnowApiEndpointValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: SnowApiEndpoint
+      Type: String
+      Value: !Ref SnowApiEndpoint
+  SnowClientIdValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: SnowClientId
+      Type: String
+      Value: !Ref SnowClientId
+  SnowBasicAuthValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: SnowBasicAuth
+      Type: String
+      Value: !Ref SnowBasicAuth
+  SnowAuthURLValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: SnowAuthURL
+      Type: String
+      Value: !Ref SnowAuthURL
+  SnowAuthUserNameValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: SnowAuthUserName
+      Type: String
+      Value: !Ref SnowAuthUserName
+  SnowAuthPasswordValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: SnowAuthPassword
+      Type: String
+      Value: !Ref SnowAuthPassword
+  JiraCustomerRefNoFieldIdValue:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: JiraCustomerRefNoFieldId
+      Type: String
+      Value: !Ref JiraCustomerRefNoFieldId   
+  S3SnowBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: S3SnowBucketName
+  S3JSDBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: S3JSDBucketName
+  JiraToSnowApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: JiraToSnowApi
+      StageName: !Ref Stage
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan: # OPTIONAL
+          CreateUsagePlan: PER_API
+  SnowToJiraApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: SnowToJiraApi
+      StageName: !Ref Stage
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan: # OPTIONAL
+          CreateUsagePlan: PER_API        
+  GetUploadURLFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/
+      Handler: s3_presigned_url.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Resource: 
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${S3PresignUrlTtlValue}
+              Action:
+                - ssm:GetParameters
+                - ssm:GetParameter
+            - Effect: Allow
+              Action: s3:*
+              Resource: '*'
+      Environment:
+        Variables:
+          S3_BUCKET:
+            Ref: S3SnowBucket
+          S3PresignUrlTtlId:
+            Ref: S3PresignUrlTtlValue
+      Events:
+        S3UploadApi:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref SnowToJiraApi
+            Auth:
+              ApiKeyRequired: true
+            Path: /GenerateUploadURL
+            Method: get
+            RequestParameters:
+              - method.request.querystring.issue_key:
+                  Required: true
+                  Caching: false
+              - method.request.querystring.file_name:
+                  Required: true
+                  Caching: false
+  SNOWIncidentCreateToJSD:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/
+      Handler: snow_message_processor.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Resource: '*'
+              Action:
+                - ssm:GetParameters
+                - ssm:GetParameter
+            - Effect: Allow
+              Action: s3:*
+              Resource: '*'
+      Environment:
+        Variables:
+          JIRA_CUSTOMER_REF_NO_FIELD_ID:
+            Ref: JiraCustomerRefNoFieldIdValue
+          JIRA_ACTUAL_RESULT_FIELD_ID:
+            Ref: JiraActualResultFieldIdValue
+          JIRA_EXPECTED_RESULT_FIELD_ID:
+            Ref: JiraExpectedResultFieldIdValue
+          JIRA_ENVIRONMENT_FIELD_ID:
+            Ref: JiraEnvironmentFieldIdValue
+          JIRA_SERVICE_DESK_ID:
+            Ref: JiraServiceDeskIdValue
+          JIRA_REQUEST_TYPE_ID:
+            Ref: JiraRequestTypeIdValue
+          JIRA_USER:
+            Ref: JiraUserValue
+          JIRA_PASSWORD:
+            Ref: JiraPasswordValue
+          JIRA_SERVER:
+            Ref: JiraServerValue
+      Events:
+        S3UploadApi:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref SnowToJiraApi
+            Auth:
+              ApiKeyRequired: true
+            Path: /FSDIncident
+            Method: post
+  SNOWIncidentUpdateToJSD:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/
+      Handler: snow_message_processor.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Resource: '*'
+              Action:
+                - ssm:GetParameters
+                - ssm:GetParameter
+            - Effect: Allow
+              Action: s3:*
+              Resource: '*'
+      Environment:
+        Variables:
+          JIRA_CUSTOMER_REF_NO_FIELD_ID:
+            Ref: JiraCustomerRefNoFieldIdValue
+          JIRA_ACTUAL_RESULT_FIELD_ID:
+            Ref: JiraActualResultFieldIdValue
+          JIRA_EXPECTED_RESULT_FIELD_ID:
+            Ref: JiraExpectedResultFieldIdValue
+          JIRA_ENVIRONMENT_FIELD_ID:
+            Ref: JiraEnvironmentFieldIdValue
+          JIRA_SERVICE_DESK_ID:
+            Ref: JiraServiceDeskIdValue
+          JIRA_REQUEST_TYPE_ID:
+            Ref: JiraRequestTypeIdValue
+          JIRA_USER:
+            Ref: JiraUserValue
+          JIRA_PASSWORD:
+            Ref: JiraPasswordValue
+          JIRA_SERVER:
+            Ref: JiraServerValue
+      Events:
+        S3UploadApi:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref SnowToJiraApi
+            Auth:
+              ApiKeyRequired: true
+            Path: /FSDIncident/{incidentId}
+            Method: put
+  S3ToJSDFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: s3_to_jsd.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Resource: 
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${JiraServerValue}
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${JiraUserValue}
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${JiraPasswordValue}
+              Action:
+                - ssm:GetParameters
+                - ssm:GetParameter
+            - Effect: Allow
+              Action: s3:*
+              Resource: '*'
+      Environment:
+        Variables:
+          JiraServerId:
+            Ref: JiraServerValue
+          JiraUserId:
+            Ref: JiraUserValue
+          JiraPasswordId:
+            Ref: JiraPasswordValue
+      Events:
+        JiraUploadTrigger:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: S3SnowBucket
+            Events: s3:ObjectCreated:*
+  S3ToServiceNow:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: src/
+        Handler: s3_to_snow.handler
+        Policies:
+          - AmazonS3FullAccess
+          - AmazonSSMFullAccess
+        Timeout: 30
+        Environment:
+          Variables:
+            SnowApiEndpointId:
+              Ref: SnowApiEndpointValue
+            SnowClientId:
+              Ref: SnowClientIdValue
+            SnowBasicAuthId:
+              Ref: SnowBasicAuthValue
+        Events:
+          SnowUploadTrigger:
+            Type: S3
+            Properties:
+              Bucket:
+                Ref: S3JSDBucket
+              Events: s3:ObjectCreated:*
+  JiraAttachmentToS3:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: src/
+        Handler: jsd_to_s3.handler
+        Policies:
+          - Statement:
+            - Effect: Allow
+              Resource: 
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${JiraServerValue}
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${JiraUserValue}
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${JiraPasswordValue}
+              Action:
+                - ssm:GetParameters
+                - ssm:GetParameter
+            - Effect: Allow
+              Action: s3:*
+              Resource: '*'
+        Environment:
+          Variables:
+            S3_JSD_BUCKET:
+              Ref: S3JSDBucket
+            JiraServerId:
+              Ref: JiraServerValue
+            JiraUserId:
+              Ref: JiraUserValue
+            JiraPasswordId:
+              Ref: JiraPasswordValue
+        Events:
+          SnowUploadApi:
+            Type: Api
+            Properties:
+              RestApiId: !Ref JiraToSnowApi
+              Auth:
+                ApiKeyRequired: true
+              Path: /SNOWAttachment
+              Method: post
+  JiraIssueCreateToSnow:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: jira_message_processor.handler
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Resource: '*'
+            Action:
+              - ssm:GetParameters
+              - ssm:GetParameter
+              - ssm:PutParameter
+          - Effect: Allow
+            Action: s3:*
+            Resource: '*'
+      Environment:
+        Variables:
+          JIRA_CUSTOMER_REF_NO_FIELD_ID:
+            Ref: JiraCustomerRefNoFieldIdValue
+          JIRA_ACTUAL_RESULT_FIELD_ID:
+            Ref: JiraActualResultFieldIdValue
+          JIRA_EXPECTED_RESULT_FIELD_ID:
+            Ref: JiraExpectedResultFieldIdValue
+          JIRA_ENVIRONMENT_FIELD_ID:
+            Ref: JiraEnvironmentFieldIdValue
+          JIRA_SERVICE_DESK_ID:
+            Ref: JiraServiceDeskIdValue
+          JIRA_REQUEST_TYPE_ID:
+            Ref: JiraRequestTypeIdValue
+          JIRA_SERVER:
+            Ref: JiraServerValue
+          JIRA_USER:
+            Ref: JiraUserValue
+          JIRA_PASSWORD:
+            Ref: JiraPasswordValue
+          SnowApiEndpointId:
+            Ref: SnowApiEndpointValue
+          SnowClientId:
+            Ref: SnowClientIdValue
+          SnowBasicAuthId:
+            Ref: SnowBasicAuthValue
+          SnowAuthURL:
+            Ref: SnowAuthURLValue
+          SnowAuthUserName:
+            Ref: SnowAuthUserNameValue
+          SnowAuthPassword:
+            Ref: SnowAuthPasswordValue
+      Events:
+        SnowUploadApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JiraToSnowApi
+            Auth:
+              ApiKeyRequired: true
+            Path: /SNOWIncident
+            Method: post
+  JiraIssueUpdateToSnow:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: jira_message_processor.handler
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Resource: '*'
+            Action:
+              - ssm:GetParameters
+              - ssm:GetParameter
+              - ssm:PutParameter
+          - Effect: Allow
+            Action: s3:*
+            Resource: '*'
+      Environment:
+        Variables:
+          JIRA_CUSTOMER_REF_NO_FIELD_ID:
+            Ref: JiraCustomerRefNoFieldIdValue
+          JIRA_ACTUAL_RESULT_FIELD_ID:
+            Ref: JiraActualResultFieldIdValue
+          JIRA_EXPECTED_RESULT_FIELD_ID:
+            Ref: JiraExpectedResultFieldIdValue
+          JIRA_ENVIRONMENT_FIELD_ID:
+            Ref: JiraEnvironmentFieldIdValue
+          JIRA_SERVICE_DESK_ID:
+            Ref: JiraServiceDeskIdValue
+          JIRA_REQUEST_TYPE_ID:
+            Ref: JiraRequestTypeIdValue
+          JIRA_SERVER:
+            Ref: JiraServerValue
+          JIRA_USER:
+            Ref: JiraUserValue
+          JIRA_PASSWORD:
+            Ref: JiraPasswordValue
+          SnowApiEndpointId:
+            Ref: SnowApiEndpointValue
+          SnowClientId:
+            Ref: SnowClientIdValue
+          SnowBasicAuthId:
+            Ref: SnowBasicAuthValue
+          SnowAuthURL:
+            Ref: SnowAuthURLValue
+          SnowAuthUserName:
+            Ref: SnowAuthUserNameValue
+          SnowAuthPassword:
+            Ref: SnowAuthPasswordValue
+      Events:
+        SnowUploadApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JiraToSnowApi
+            Auth:
+              ApiKeyRequired: true
+            Path: /SNOWIncident/{incidentId}
+            Method: put
+
+Outputs:
+  GetUploadURLApi:
+    Description: "Get an asset pre-signed upload URL"
+    Value: !Sub "https://${SnowToJiraApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/GenerateUploadURL"
+  JSDTriggerS3Url:
+    Description: "Webhook method for JSD"
+    Value: !Sub "https://${JiraToSnowApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/SNOWAttachment"
+

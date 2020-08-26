@@ -1,0 +1,4 @@
+requests
+atlassian-python-api
+boto3 #no-deploy
+botocore #no-deploy
