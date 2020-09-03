@@ -3,21 +3,19 @@ import os
 import boto3
 from log_cfg import logger
 from aws.ssm import get_ssm_value
+from settings import Parameters
+from botocore.client import Config
 
+s3 = boto3.client('s3',config=Config(signature_version='s3v4'))
 
-s3 = boto3.client('s3')
-
-
-BUCKET = os.environ['S3_BUCKET']
-S3PresignUrlTtlId = os.environ['S3PresignUrlTtlId']
-
+S3_BUCKET = os.environ['S3SnowBucket']
 
 def validate_environment():
     error = ''
     s3_presigned_url_ttl = None
     status = 200
 
-    error, s3_presigned_url_ttl = get_ssm_value(key=S3PresignUrlTtlId)
+    error, s3_presigned_url_ttl = get_ssm_value(key=Parameters.S3_PRESIGNED_URL_TTL.value)
     resp = {
         "ok": not error,
     }
@@ -61,7 +59,7 @@ def generate_presigned_url(issue_key, file_name, ttl):
     }
     try:
         upload_url = s3.generate_presigned_post(
-            Bucket=BUCKET,
+            Bucket=S3_BUCKET,
             Key=f'{issue_key}/{file_name}',
             ExpiresIn=int(ttl)
         )

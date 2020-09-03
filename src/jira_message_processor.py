@@ -8,6 +8,7 @@ import boto3
 
 from clients.jsd import get_request, update_issue
 from clients.snow import create_incident, update_incident
+from settings import Parameters
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -177,9 +178,7 @@ def update_jsd_request(issue_id, snow_incident_number):
     data = {
         "fields": {},
     }
-    custom_field_id = get_param_value(
-        os.environ.get(
-            "JIRA_CUSTOMER_REF_NO_FIELD_ID"))
+    custom_field_id = get_param_value(Parameters.JIRA_CUSTOMER_REF_NO_FIELD_ID.value)
     data["fields"][custom_field_id] = str(snow_incident_number)
     update_issue(issue_id, data)
 

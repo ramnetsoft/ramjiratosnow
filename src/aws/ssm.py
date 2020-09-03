@@ -1,6 +1,6 @@
 import boto3
 
-def get_ssm_value(key, with_decryption=False):
+def get_ssm_value(key, with_decryption=True):
     ssm = boto3.client('ssm')
     value = None
     error = ''
@@ -12,3 +12,6 @@ def get_ssm_value(key, with_decryption=False):
     except Exception as ex:
         error = f'Cannot get ssm value for key: {key}'
     return error, value
+def put_ssm_value(key, value, type='SecureString'):
+    ssm = boto3.client('ssm')
+    ssm.put_parameter(Name=key,Value=value,Type=type,Overwrite=True)

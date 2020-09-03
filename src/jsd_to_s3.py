@@ -7,13 +7,11 @@ from log_cfg import logger
 from urllib.parse import unquote_plus
 from requests.auth import HTTPBasicAuth
 from aws.ssm import get_ssm_value
+from settings import Parameters
 
 s3_client = boto3.client('s3')
 
 
-JiraServerId = os.environ['JiraServerId']
-JiraUserId = os.environ['JiraUserId']
-JiraPasswordId = os.environ['JiraPasswordId']
 S3_JSD_BUCKET = os.environ['S3_JSD_BUCKET']
 
 JIRA_SEVER = None
@@ -24,11 +22,11 @@ JIRA_API_KEY = None
 def validate_environment():
     error = ''
     global JIRA_SEVER, JIRA_USER, JIRA_API_KEY
-    err, JIRA_SEVER = get_ssm_value(key=JiraServerId)
+    err, JIRA_SEVER = get_ssm_value(key=Parameters.JIRA_HOST.value)
     error += err
-    err, JIRA_USER = get_ssm_value(key=JiraUserId)
+    err, JIRA_USER = get_ssm_value(key=Parameters.JIRA_USER_ID.value)
     error += err
-    err, JIRA_API_KEY = get_ssm_value(key=JiraPasswordId)
+    err, JIRA_API_KEY = get_ssm_value(key=Parameters.JIRA_APP_PASSWORD.value)
     error += err
 
     resp = {
@@ -84,7 +82,7 @@ def download_comment_attachments_and_upload_to_s3(issue_key, body,customer_ref_n
                 msgs.append(msg)
         resp["info"] = msgs
     except Exception as ex:
-        error = f"Something wrong here: {str(ex)}"
+        error = f"An error occurred: {str(ex)}"
     
     if error:
         resp["error"] = error

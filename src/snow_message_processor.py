@@ -6,6 +6,7 @@ import os
 import boto3
 
 from clients.jsd import create_comment, create_request, get_request
+from settings import Parameters
 
 
 logger = logging.getLogger()
@@ -129,28 +130,22 @@ def validate_body(body, extra_fields=None, all_fields=True):
 
 
 def post_mapping(fields):
-    custom_field_id = get_param_value(
-        os.environ.get(
-            "JIRA_CUSTOMER_REF_NO_FIELD_ID"))
-    actual_result_field_id = get_param_value(
-        os.environ.get(
-            "JIRA_ACTUAL_RESULT_FIELD_ID"))
-    expected_result_field_id = get_param_value(
-        os.environ.get(
-            "JIRA_EXPECTED_RESULT_FIELD_ID"))
-    environment_field_id = get_param_value(
-        os.environ.get(
-            "JIRA_ENVIRONMENT_FIELD_ID"))
+    custom_field_id = get_param_value(Parameters.JIRA_CUSTOMER_REF_NO_FIELD_ID.value)
+
+    actual_result_field_id = get_param_value(Parameters.JIRA_ACTUAL_RESULT_FIELD_ID.value)
+
+    expected_result_field_id = get_param_value(Parameters.JIRA_EXPECTED_RESULT_FIELD_ID.value)
+
+    environment_field_id = get_param_value(Parameters.JIRA_ENVIRONMENT_FIELD_ID.value)
+
     description = "{}\n\nReported by: {}".format(
         fields["description"], fields["reportedby"]
     )
     return {
         "serviceDeskId": int(
-            get_param_value(
-                os.environ.get("JIRA_SERVICE_DESK_ID"))),
+            get_param_value(Parameters.JIRA_SERVICE_DESK_ID.value)),
         "requestTypeId": int(
-            get_param_value(
-                os.environ.get("JIRA_REQUEST_TYPE_ID"))),
+            get_param_value(Parameters.JIRA_REQUEST_TYPE_ID.value)),
         "requestFieldValues": {
             custom_field_id: fields["snow_incident_number"],
             actual_result_field_id: "N/A",
@@ -170,9 +165,8 @@ def post_mapping(fields):
 def put_mapping(fields):
     values = {}
     if "snow_incident_number" in fields:
-        custom_field_id = get_param_value(
-            os.environ.get(
-                "JIRA_CUSTOMER_REF_NO_FIELD_ID"))
+        custom_field_id = get_param_value(Parameters.JIRA_CUSTOMER_REF_NO_FIELD_ID.value)
+
         values[custom_field_id] = fields["snow_incident_number"]
     if "priority" in fields:
         values["priority"] = {

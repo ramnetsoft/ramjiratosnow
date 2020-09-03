@@ -5,7 +5,7 @@ import os
 import boto3
 import requests
 from requests.auth import HTTPBasicAuth
-
+from settings import Parameters
 
 class ClientError(Exception):
     pass
@@ -17,18 +17,13 @@ def get_param_value(name):
     return parameter["Parameter"]["Value"]
 
 
-JIRA_USER_EMAIL_SSM_PARAM_NAME = os.environ.get("JIRA_USER")
-JIRA_API_TOKEN_SSM_PARAM_NAME = os.environ.get("JIRA_PASSWORD")
-JIRA_API_URL_SSM_PARAM_NAME = os.environ.get("JIRA_SERVER")
-JIRA_SERVICE_DESK_ID_PARAM_NAME = os.environ.get("JIRA_SERVICE_DESK_ID")
-
-JIRA_API_URL = get_param_value(JIRA_API_URL_SSM_PARAM_NAME)
-JIRA_SERVICE_DESK_ID = get_param_value(JIRA_SERVICE_DESK_ID_PARAM_NAME)
+JIRA_API_URL = get_param_value(Parameters.JIRA_HOST.value)
+JIRA_SERVICE_DESK_ID = get_param_value(Parameters.JIRA_SERVICE_DESK_ID.value)
 
 session = requests.Session()
 session.auth = HTTPBasicAuth(
-    get_param_value(JIRA_USER_EMAIL_SSM_PARAM_NAME),
-    get_param_value(JIRA_API_TOKEN_SSM_PARAM_NAME)
+    get_param_value(Parameters.JIRA_USER_ID.value),
+    get_param_value(Parameters.JIRA_APP_PASSWORD.value)
 )
 session.headers = {
     "Accept": "application/json",
@@ -86,6 +81,53 @@ def update_issue(issue_id, data):
 
 def get_request(issueIdOrKey):
     return sda_get_request(f'/request/{issueIdOrKey}')
+
+def attach_temporary_file(service_desk_id, filename):
+    """
+    Create temporary attachment, which can later be converted into permanent attachment
+    :param service_desk_id: str
+    :param filename: str
+    :return: Temporary Attachment ID
+    """
+    temporary_attachment_headers = {
+            "Accept": "application/json",
+            "X-Atlassian-Token": "nocheck",
+            "X-ExperimentalApi": "opt-in",
+            "Origin": JIRA_API_URL
+    }
+    url = f'{JIRA_API_URL}/rest/servicedeskapi/servicedesk/{service_desk_id}/attachTemporaryFile'
+    
+    with open(filename, 'rb') as file:
+        session.headers = temporary_attachment_headers
+        response = session.post(url=url,
+                            files={'file': file})
+        raise_not_ok_exception(response)
+        temp_attachment_id = response.json()['temporaryAttachments'][0].get('temporaryAttachmentId')
+
+        return temp_attachment_id
+def add_attachment(issue_id_or_key, temp_attachment_id, public=True, comment=None):
+    """
+    Adds temporary attachment to customer request using attach_temporary_file function
+    :param issue_id_or_key: str
+    :param temp_attachment_id: str, ID from result attach_temporary_file function
+    :param public: bool (default is True)
+    :param comment: str (default is None)
+    :return:
+    """
+    data = {'temporaryAttachmentIds': [temp_attachment_id],
+            'public': public,
+            'additionalComment': {'body': comment}}
+    url = f'{JIRA_API_URL}/rest/servicedeskapi/request/{issue_id_or_key}/attachment'
+    add_attachment_headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",     
+            "Origin": JIRA_API_URL
+    }
+    session.headers = add_attachment_headers
+    response = session.post(url=url,
+                            json=data)
+    raise_not_ok_exception(response)
+    return response.json()
 
 
 def create_comment(issueIdOrKey, comment, public=True):

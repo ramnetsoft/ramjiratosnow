@@ -8,6 +8,7 @@ import time
 
 import boto3
 import requests
+from settings import Parameters
 
 
 class ClientError(Exception):
@@ -30,27 +31,15 @@ def put_param_value(name, value, param_type='SecureString'):
 
 
 # SNOW REST API URL
-SNOW_API_URL_SSM_PARAM_NAME = os.environ.get("SnowApiEndpointId")
-
-SNOW_API_URL = get_param_value(SNOW_API_URL_SSM_PARAM_NAME)
-
-# The list of parameters to the service that returns a token:
-SNOW_AUTH_URL_SSM_PARAM_NAME = os.environ.get(
-    "SnowAuthURL")
-SNOW_AUTH_USERNAME_SSM_PARAM_NAME = os.environ.get(
-    "SnowAuthUserName")
-SNOW_AUTH_PASSWORD_SSM_PARAM_NAME = os.environ.get(
-    "SnowAuthPassword")
-SNOW_AUTH_CLIENID_SSM_PARAM_NAME = os.environ.get(
-    "SnowClientId")
+SNOW_API_URL = get_param_value(Parameters.SNOW_HOST.value)
 
 # A parameter for storing token information (access token, expires and
 # type):
-SNOW_API_TOKEN_SSM_PARAM_NAME = "SNOW_API_TOKEN_KEY_2"
+SNOW_API_TOKEN_SSM_PARAM_NAME = Parameters.SNOW_API_TOKEN_SSM_2.value
 
 
 def get_client_id():
-    return get_param_value(SNOW_AUTH_CLIENID_SSM_PARAM_NAME)
+    return get_param_value(Parameters.SNOW_CLIENT_ID.value)
 
 
 def get_token():
@@ -73,10 +62,10 @@ def store_token(token):
 
 
 def request_token():
-    auth_url = get_param_value(SNOW_AUTH_URL_SSM_PARAM_NAME)
+    auth_url = get_param_value(Parameters.SNOW_AUTH_URL.value)
     auth = (
-        get_param_value(SNOW_AUTH_USERNAME_SSM_PARAM_NAME),
-        get_param_value(SNOW_AUTH_PASSWORD_SSM_PARAM_NAME),
+        get_param_value(Parameters.SNOW_AUTH_USER_NAME.value),
+        get_param_value(Parameters.SNOW_AUTH_PASSWORD.value),
     )
     headers = {
         "X-IBM-Client-Id": get_client_id(),

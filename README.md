@@ -18,46 +18,84 @@ To use the SAM CLI, you need the following tools.
 * [Python 3 installed](https://www.python.org/downloads/)
 * Docker - [Install Docker community edition](https://hub.docker.com/search/?type=edition&offering=community)
 
-To build and deploy your application for the first time, run the following in your shell:
+To set variables environment, create a ``.env`` file in the root directory with the same variables as the ``.env_sample`` file.
+
+- SAM configuration:
+
+```commandline
+    Region=us-east-1
+    StackName=swapiv10
+    S3Bucket=aws-sam-cli-v10
+```
+* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
+* **AWS Region**: The AWS region you want to deploy your app to.
+* **S3Bucket**: The name of the Amazon S3 bucket where this command uploads your AWS CloudFormation template.
+
+- Template Parameters:
+
+```commandline
+    # Template parameters
+    Stage=dev
+    S3SnowBucketName=snow-attachments-v10
+    S3JSDBucketName=jsd-attachments-v10
+```
+
+- SSM Parameters:
+
+```commandline
+    # SSM parameters
+    # Jira
+    JiraHost=NOT_CONFIGURED
+    JiraUserId=NOT_CONFIGURED
+    JiraAppPassword=NOT_CONFIGURED
+    ...
+```
+
+To build and deploy your application run the following in your shell:
 
 Build
 ```bash
-sam build
+make build
 ```
 
 Or build with docker if you have troubles with Python environment
 ```bash
-sam build --use-container
+make build_with_docker
 ```
 
 Deploy
 ```bash
-sam deploy --guided
-```
-
-The first command will build the source of your application. The second command will package and deploy your application to AWS, with a series of prompts:
-
-* **Stack Name**: The name of the stack to deploy to CloudFormation. This should be unique to your account and region, and a good starting point would be something matching your project name.
-* **AWS Region**: The AWS region you want to deploy your app to.
-* **Confirm changes before deploy**: If set to yes, any change sets will be shown to you before execution for manual review. If set to no, the AWS SAM CLI will automatically deploy application changes.
-* **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modified IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
-* **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
-* **--parameter-overrides** A string that contains AWS CloudFormation parameter overrides encoded as key=value pairs
-```bash
-sam deploy --parameter-overrides 'ParameterKey=JiraPassword,ParameterValue={JIRA_PASSWORD} ParameterKey=S3BucketName,ParameterValue={S3_BUCKET_NAME}'
+make deploy
 ```
 
 You can find your API Gateway Endpoint URL in the output values displayed after deployment.
-To get the api token, run the command below with the `ApiKeyId` in the output
+To get the api token, run the command below with the value from the output
+
 ```bash
 aws apigateway get-api-key --api-key <ApiKeyId> --include-value
 ```
 Then you can pass api token as `x-api-key` HTTP Header Parameter to access the api
 
+Update SSM parameters with value from `.env` file
+```bash
+make update_ssm
+```
+
 ## Cleanup
 
-To delete the sample application that you created, use the AWS CLI. Assuming you used your project name for the stack name, you can run the following:
+To delete the application that you created, use the command below:
 
 ```bash
-aws cloudformation delete-stack --stack-name <STACK_NAME>
+make clean
+```
+## Change ENV path
+
+By default the `make` command targets on `.env` file, you can change it with `env_path` argument
+
+```bash
+make env_path=<ENV_PATH> build
+make env_path=<ENV_PATH> build_with_docker
+make env_path=<ENV_PATH> deploy
+make env_path=<ENV_PATH> make update_ssm
+make env_path=<ENV_PATH> clean
 ```

@@ -8,17 +8,10 @@ import time
 import base64
 from log_cfg import logger
 from urllib.parse import unquote_plus
-from aws.ssm import get_ssm_value
-
-
-
+from aws.ssm import get_ssm_value, put_ssm_value
+from settings import Parameters
 
 s3_client = boto3.client('s3')
-ssm = boto3.client('ssm')
-
-SnowApiEndpointId = os.environ['SnowApiEndpointId']
-SnowClientId = os.environ['SnowClientId']
-SnowBasicAuthId = os.environ['SnowBasicAuthId']
 
 # Service now configuration
 SNOW_AUTH_ENDPOINT = None
@@ -27,17 +20,17 @@ SNOW_X_IBM_CLIENT_ID = None
 SNOW_BASIC_AUTH = None
 
 
-SSM_API_TOKEN_KEY='SNOW_API_TOKEN_KEY'
+SSM_API_TOKEN_KEY=Parameters.SNOW_API_TOKEN_SSM_1.value
 
 def validate_environment():
     error = ''
     snow_endpoint = None
     global SNOW_X_IBM_CLIENT_ID, SNOW_BASIC_AUTH, SNOW_AUTH_ENDPOINT, SNOW_ATTACHMENT_ENDPOINT
-    err, snow_endpoint = get_ssm_value(key=SnowApiEndpointId)
+    err, snow_endpoint = get_ssm_value(key=Parameters.SNOW_HOST.value)
     error += err
-    err, SNOW_X_IBM_CLIENT_ID = get_ssm_value(key=SnowClientId)
+    err, SNOW_X_IBM_CLIENT_ID = get_ssm_value(key=Parameters.SNOW_CLIENT_ID.value)
     error += err
-    err, SNOW_BASIC_AUTH = get_ssm_value(key=SnowBasicAuthId)
+    err, SNOW_BASIC_AUTH = get_ssm_value(key=Parameters.SNOW_BASIC_AUTH.value)
     error += err
     SNOW_AUTH_ENDPOINT = f'{snow_endpoint}/authorization/token'
     SNOW_ATTACHMENT_ENDPOINT = f'{snow_endpoint}/itsm-incident/process/incidents'
@@ -63,7 +56,7 @@ def request_access_token():
     }
     res = requests.request(method='GET',url=SNOW_AUTH_ENDPOINT,headers=headers)
     data = json.loads(res.text)
-    ssm.put_parameter(Name=SSM_API_TOKEN_KEY,Value=json.dumps(data),Type='SecureString',Overwrite=True)
+    put_ssm_value(key=SSM_API_TOKEN_KEY,value=json.dumps(data),type='SecureString')
     return data
 
 def check_if_token_is_valid(exp_time):
