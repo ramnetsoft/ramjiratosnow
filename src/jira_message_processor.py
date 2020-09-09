@@ -8,10 +8,10 @@ import boto3
 
 from clients.jsd import get_request, update_issue
 from clients.snow import create_incident, update_incident
-from settings import Parameters
+from settings import Parameters, get_log_level
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(get_log_level())
 
 
 def get_param_value(name):

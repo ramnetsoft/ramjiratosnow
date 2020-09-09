@@ -9,6 +9,8 @@ Parameters:
     Type: String
   Stage:
     Type: String
+  LogLevel:
+    Type: String
 Globals:
   Function:
     Timeout: 60
@@ -162,6 +164,7 @@ Resources:
         Variables:
           S3SnowBucket: !Ref S3SnowBucket
           Stage: !Ref Stage
+          LogLevel: !Ref LogLevel
       Events:
         S3UploadApi:
           Type: Api
@@ -223,6 +226,7 @@ Resources:
       Environment:
         Variables:
           Stage: !Ref Stage
+          LogLevel: !Ref LogLevel
       Events:
         S3UploadApi:
           Type: Api
@@ -256,6 +260,7 @@ Resources:
       Environment:
         Variables:
           Stage: !Ref Stage
+          LogLevel: !Ref LogLevel
       Events:
         JiraUploadTrigger:
           Type: S3
@@ -289,6 +294,7 @@ Resources:
         Environment:
           Variables:
             Stage: !Ref Stage
+            LogLevel: !Ref LogLevel
         Events:
           SnowUploadTrigger:
             Type: S3
@@ -322,6 +328,7 @@ Resources:
             S3_JSD_BUCKET:
               Ref: S3JSDBucket
             Stage: !Ref Stage
+            LogLevel: !Ref LogLevel
         Events:
           SnowUploadApi:
             Type: Api
@@ -350,6 +357,7 @@ Resources:
       Environment:
         Variables:
           Stage: !Ref Stage
+          LogLevel: !Ref LogLevel
       Events:
         SnowUploadApi:
           Type: Api
@@ -378,6 +386,7 @@ Resources:
       Environment:
         Variables:
           Stage: !Ref Stage
+          LogLevel: !Ref LogLevel
       Events:
         SnowUploadApi:
           Type: Api

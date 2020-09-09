@@ -6,11 +6,11 @@ import os
 import boto3
 
 from clients.jsd import create_comment, create_request, get_request
-from settings import Parameters
+from settings import Parameters, get_log_level
 
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(get_log_level())
 
 
 def get_jirarequest(incident_id):

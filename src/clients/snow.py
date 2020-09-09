@@ -8,7 +8,7 @@ import time
 
 import boto3
 import requests
-from settings import Parameters
+from settings import Parameters, get_log_level
 
 
 class ClientError(Exception):
@@ -17,7 +17,7 @@ class ClientError(Exception):
 
 ssm_client = boto3.client("ssm")
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(get_log_level())
 
 
 def get_param_value(name):

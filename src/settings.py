@@ -1,7 +1,16 @@
 import os
+import logging
 from enum import Enum
 
 STAGE = os.environ['Stage']
+
+
+def get_log_level():
+    log_level = os.environ['LogLevel']
+    try:
+        return logging.getLevelName(log_level)
+    except Exception as ex:
+        return logging.getLevelName('DEBUG')
 
 class Parameters(Enum):
     # Jira parameters

@@ -19,7 +19,7 @@ deploy:
 					--capabilities 'CAPABILITY_IAM' \
 					--region $(Region) \
 					--confirm-changeset \
-					--parameter-overrides 'ParameterKey=Stage,ParameterValue=$(Stage) ParameterKey=S3SnowBucketName,ParameterValue=$(S3SnowBucketName) ParameterKey=S3JSDBucketName,ParameterValue=$(S3JSDBucketName)'
+					--parameter-overrides 'ParameterKey=Stage,ParameterValue=$(Stage) ParameterKey=S3SnowBucketName,ParameterValue=$(S3SnowBucketName) ParameterKey=S3JSDBucketName,ParameterValue=$(S3JSDBucketName) ParameterKey=LogLevel,ParameterValue=$(LogLevel)'
 
 update_ssm:
 		@set -x
