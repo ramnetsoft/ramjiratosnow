@@ -17,7 +17,6 @@ Resources:
 # SSM resources
   JiraHostValue:
     Type: AWS::SSM::Parameter
-
     Properties:
       Name: !Sub "/${Stage}/JiraHost"
       Type: String
@@ -126,7 +125,7 @@ Resources:
   JiraToSnowApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: JiraToSnowApi
+      Name: !Sub ${Stage}-JiraToSnowApi
       StageName: !Ref Stage
       Auth:
         ApiKeyRequired: true
@@ -135,7 +134,7 @@ Resources:
   SnowToJiraApi:
     Type: AWS::Serverless::Api
     Properties:
-      Name: SnowToJiraApi
+      Name: !Sub ${Stage}-SnowToJiraApi
       StageName: !Ref Stage
       Auth:
         ApiKeyRequired: true
@@ -149,14 +148,16 @@ Resources:
       Policies:
         - Statement:
             - Effect: Allow
-              Resource: '*'
+              Resource: 
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/S3PresignUrlTtl
               Action:
                 - ssm:GetParameters
                 - ssm:GetParameter
                 - ssm:PutParameter
             - Effect: Allow
               Action: s3:*
-              Resource: '*'
+              Resource:
+                - !Sub arn:aws:s3:::${S3SnowBucketName}*
       Environment:
         Variables:
           S3SnowBucket: !Ref S3SnowBucket
@@ -239,14 +240,19 @@ Resources:
       Policies:
         - Statement:
             - Effect: Allow
-              Resource: '*'
+              Resource: 
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraHost
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraUserId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraAppPassword
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraServiceDeskId
               Action:
                 - ssm:GetParameters
                 - ssm:GetParameter
                 - ssm:PutParameter
             - Effect: Allow
               Action: s3:*
-              Resource: '*'
+              Resource:
+                - !Sub arn:aws:s3:::${S3SnowBucketName}*
       Environment:
         Variables:
           Stage: !Ref Stage
@@ -263,8 +269,22 @@ Resources:
         CodeUri: src/
         Handler: s3_to_snow.handler
         Policies:
-          - AmazonS3FullAccess
-          - AmazonSSMFullAccess
+          - Statement:
+              - Effect: Allow
+                Resource: 
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowHost
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowClientId
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowAuthUserName
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowAuthPassword
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SNOW_API_TOKEN_KEY_1
+                Action:
+                  - ssm:GetParameters
+                  - ssm:GetParameter
+                  - ssm:PutParameter
+              - Effect: Allow
+                Action: s3:*
+                Resource:
+                  - !Sub arn:aws:s3:::${S3JSDBucketName}*
         Timeout: 30
         Environment:
           Variables:
@@ -284,14 +304,19 @@ Resources:
         Policies:
           - Statement:
             - Effect: Allow
-              Resource: '*'
+              Resource: 
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraHost
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraUserId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraAppPassword
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraServiceDeskId
               Action:
                 - ssm:GetParameters
                 - ssm:GetParameter
                 - ssm:PutParameter
             - Effect: Allow
               Action: s3:*
-              Resource: '*'
+              Resource:
+                - !Sub arn:aws:s3:::${S3JSDBucketName}*
         Environment:
           Variables:
             S3_JSD_BUCKET:
