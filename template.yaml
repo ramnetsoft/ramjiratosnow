@@ -155,7 +155,6 @@ Resources:
               Action:
                 - ssm:GetParameters
                 - ssm:GetParameter
-                - ssm:PutParameter
             - Effect: Allow
               Action: s3:*
               Resource:
@@ -189,13 +188,19 @@ Resources:
       Policies:
         - Statement:
             - Effect: Allow
-              Resource: '*'
+              Resource: 
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraHost
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraUserId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraAppPassword
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraCustomerRefNoFieldId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraActualResultFieldId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraExpectedResultFieldId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraEnvironmentFieldId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraServiceDeskId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraRequestTypeId
               Action:
                 - ssm:GetParameters
                 - ssm:GetParameter
-            - Effect: Allow
-              Action: s3:*
-              Resource: '*'
       Environment:
         Variables:
           Stage: !Ref Stage
@@ -216,13 +221,19 @@ Resources:
       Policies:
         - Statement:
             - Effect: Allow
-              Resource: '*'
+              Resource: 
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraHost
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraUserId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraAppPassword
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraCustomerRefNoFieldId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraActualResultFieldId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraExpectedResultFieldId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraEnvironmentFieldId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraServiceDeskId
+                - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraRequestTypeId
               Action:
                 - ssm:GetParameters
                 - ssm:GetParameter
-            - Effect: Allow
-              Action: s3:*
-              Resource: '*'
       Environment:
         Variables:
           Stage: !Ref Stage
@@ -252,7 +263,6 @@ Resources:
               Action:
                 - ssm:GetParameters
                 - ssm:GetParameter
-                - ssm:PutParameter
             - Effect: Allow
               Action: s3:*
               Resource:
@@ -318,7 +328,6 @@ Resources:
               Action:
                 - ssm:GetParameters
                 - ssm:GetParameter
-                - ssm:PutParameter
             - Effect: Allow
               Action: s3:*
               Resource:
@@ -346,14 +355,26 @@ Resources:
       Policies:
         - Statement:
           - Effect: Allow
-            Resource: '*'
+            Resource:
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraHost
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraUserId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraAppPassword
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraCustomerRefNoFieldId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraActualResultFieldId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraExpectedResultFieldId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraEnvironmentFieldId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraServiceDeskId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraRequestTypeId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowHost
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowClientId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowAuthUserName
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowAuthPassword
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowAuthUrl
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SNOW_API_TOKEN_KEY_2
             Action:
               - ssm:GetParameters
               - ssm:GetParameter
               - ssm:PutParameter
-          - Effect: Allow
-            Action: s3:*
-            Resource: '*'
       Environment:
         Variables:
           Stage: !Ref Stage
@@ -375,14 +396,26 @@ Resources:
       Policies:
         - Statement:
           - Effect: Allow
-            Resource: '*'
+            Resource: 
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraHost
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraUserId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraAppPassword
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraCustomerRefNoFieldId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraActualResultFieldId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraExpectedResultFieldId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraEnvironmentFieldId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraServiceDeskId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/JiraRequestTypeId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowHost
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowClientId
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowAuthUserName
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowAuthPassword
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SnowAuthUrl
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Stage}/SNOW_API_TOKEN_KEY_2
             Action:
               - ssm:GetParameters
               - ssm:GetParameter
               - ssm:PutParameter
-          - Effect: Allow
-            Action: s3:*
-            Resource: '*'
       Environment:
         Variables:
           Stage: !Ref Stage
