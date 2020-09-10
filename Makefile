@@ -12,7 +12,7 @@ build:
 build_with_docker:
 		@sam build --use-container
 deploy:
-		@aws --region $(Region) s3 mb s3://$(S3Bucket)
+		aws --region $(Region) s3 ls  s3://$(S3Bucket) || aws --region $(Region) s3 mb s3://$(S3Bucket)
 		@sam deploy --stack-name $(StackName) \
 					--s3-bucket $(S3Bucket) \
 					--s3-prefix $(StackName) \

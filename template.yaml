@@ -204,6 +204,7 @@ Resources:
       Environment:
         Variables:
           Stage: !Ref Stage
+          LogLevel: !Ref LogLevel
       Events:
         S3UploadApi:
           Type: Api
