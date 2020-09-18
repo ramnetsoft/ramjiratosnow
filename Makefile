@@ -38,7 +38,6 @@ update_ssm:
 		# Snow Parameters
 		aws ssm put-parameter --region $(Region) --name /$(Stage)/SnowHost --value "$(SnowHost)" --type SecureString --overwrite
 		aws ssm put-parameter --region $(Region) --name /$(Stage)/SnowClientId --value "$(SnowClientId)" --type SecureString --overwrite
-		aws ssm put-parameter --region $(Region) --name /$(Stage)/BasicAuth --value "$(BasicAuth)" --type SecureString --overwrite
 		aws ssm put-parameter --region $(Region) --name /$(Stage)/SnowAuthUserName --value "$(SnowAuthUserName)" --type SecureString --overwrite
 		aws ssm put-parameter --region $(Region) --name /$(Stage)/SnowAuthPassword --value "$(SnowAuthPassword)" --type SecureString --overwrite
 		aws ssm put-parameter --region $(Region) --name /$(Stage)/SnowAuthUrl --value "$(SnowAuthUrl)" --type SecureString --overwrite
